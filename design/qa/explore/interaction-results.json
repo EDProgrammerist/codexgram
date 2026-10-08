@@ -1,0 +1,20 @@
+{
+  "passed": true,
+  "checks": [
+    "nine grid posts",
+    "follow toggle",
+    "creator preview",
+    "see all people",
+    "people search",
+    "place search",
+    "save post",
+    "empty results/reset",
+    "topic filter",
+    "tag navigation",
+    "hide creator",
+    "notifications",
+    "three responsive sizes",
+    "signed-out protection"
+  ],
+  "errors": []
+}
