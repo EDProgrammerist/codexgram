@@ -1,3 +1,4 @@
+import { useAuth } from '@clerk/expo';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { Image } from 'expo-image';
@@ -6,10 +7,11 @@ import { FlatList, KeyboardAvoidingView, Modal, Platform, Pressable, StyleSheet,
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { homeImages, type FeedPost } from '@/data/demo-feed';
 import { seedComments, type DemoComment } from '@/data/demo-comments';
-import { useLocalComments } from '@/hooks/use-local-comments';
+import { isSeededPost, useLocalComments } from '@/hooks/use-local-comments';
 export function CommentsSheet({ post, onClose, onCountChange }: { post: FeedPost; onClose: () => void; onCountChange?: (delta: number) => void }) {
-  const seeded = post.id === 'sarah-como' || post.id === 'alex-amalfi';
-  const [comments, update] = useLocalComments(post.id, seeded);
+  const { userId } = useAuth();
+  const seeded = isSeededPost(post.id);
+  const [comments, update] = useLocalComments(userId, post.id, seeded);
   const baseLength = seeded ? seedComments.length : 0;
   const count = post.comments + comments.length - baseLength;
   const { height } = useWindowDimensions();

@@ -1,3 +1,5 @@
+import { explorePosts } from '@/data/demo-explore';
+import { useSessionSaved } from '@/hooks/use-session-saved';
 import { router } from 'expo-router';
 import { useSessionProfile } from '@/hooks/use-session-profile';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
@@ -33,13 +35,14 @@ export function ProfileScreen({ preview = false }: { preview?: boolean }) {
   const [filter, setFilter] = useState<Filter>('Posts');
   const [panel, setPanel] = useState<Panel>(null);
   const [photo, setPhoto] = useState<ProfilePhoto | null>(null);
-  const [saved, setSaved] = useState(profilePhotos.filter(item => item.saved).map(item => item.id));
+  const [saved, setSaved] = useSessionSaved();
   const [unread, setUnread] = useState(preview ? 3 : 0);
   const [notice, setNotice] = useState('');
   const [busy, setBusy] = useState(false);
   const [following, setFollowing] = useState<string[]>([]);
   const photos = preview ? profilePhotos : [];
-  const visiblePhotos = photos.filter(item => filter === 'Posts' || (filter === 'Reels' && item.kind === 'video') || (filter === 'Saved' && saved.includes(item.id)) || (filter === 'Tagged' && item.tagged));
+  const savedPhotos: ProfilePhoto[] = [...photos, ...explorePosts.filter(item => !photos.some(photo => photo.id === item.id))];
+  const visiblePhotos = filter === 'Saved' ? savedPhotos.filter(item => saved.includes(item.id)) : photos.filter(item => filter === 'Posts' || (filter === 'Reels' && item.kind === 'video') || (filter === 'Tagged' && item.tagged));
   function open(next: Panel) { setNotice(''); setPanel(next); }
   async function logout() {
     setBusy(true);

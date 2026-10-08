@@ -1,7 +1,7 @@
 ﻿const {chromium, expect}=require('@playwright/test');
 const fs=require('node:fs');
 (async()=>{
- const browser=await chromium.launch({channel:'msedge',headless:true});
+ const browser=await chromium.launch({headless:true});
  const page=await browser.newPage({viewport:{width:393,height:780}});
  const errors=[];page.on('pageerror',e=>errors.push(e.message));
  await page.goto('http://localhost:8082/preview/home',{waitUntil:'networkidle'});
@@ -14,10 +14,10 @@ const fs=require('node:fs');
  await button('Next photo, 1 of 4').click();
  await expect(button('Next photo, 2 of 4')).toBeVisible();
  await button("Comments on sarah.chen's post").click();
- await page.getByLabel('Write a comment',{exact:true}).fill('Beautiful moment!');
+ await page.getByLabel('Add a comment',{exact:true}).fill('Beautiful moment!');
  await button('Post comment').click();
  await expect(page.getByText('Beautiful moment!',{exact:true})).toBeVisible();
- await button('Close').click();
+ await button('Close comments').click();
  await expect(page.getByTestId('post-sarah-como').getByText('13',{exact:true})).toBeVisible();
  await button("Play alexwong's video").click();
  await expect(page.getByText(/no video file/)).toBeVisible();
@@ -30,6 +30,7 @@ const fs=require('node:fs');
  await page.getByRole('tab',{name:new RegExp(tab)}).click();
  await expect(page).toHaveURL(new RegExp('/preview/'+tab.toLowerCase()));
  }
+ await expect(page.getByTestId('post-sarah-como').getByText('13',{exact:true})).toBeVisible();
  await page.reload({waitUntil:'networkidle'});
  const labelHeight=await page.getByRole('tab',{name:/Home/}).getByText('Home',{exact:true}).evaluate(e=>e.getBoundingClientRect().height);
  if(labelHeight<14)throw Error('Tab label is clipped');

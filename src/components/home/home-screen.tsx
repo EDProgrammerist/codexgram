@@ -1,3 +1,5 @@
+import { useAuth } from '@clerk/expo';
+import { useLocalCommentDelta } from '@/hooks/use-local-comments';
 import { CommentsSheet } from '@/components/comments/comments-sheet';
 import { TabScreen } from '@/components/home/tab-screen';
 import Ionicons from '@expo/vector-icons/Ionicons';
@@ -10,11 +12,13 @@ import { HomeHeader } from './home-header';
 import { FeedSheet } from './feed-sheet';
 import { PostCard } from './post-card';
 
-type PostState = { liked: boolean; saved: boolean; commentDelta: number };
-const initialState: PostState = { liked: true, saved: false, commentDelta: 0 };
+type PostState = { liked: boolean; saved: boolean };
+const initialState: PostState = { liked: true, saved: false };
 type Sheet = { kind: 'options' | 'profile' | 'video'; post: FeedPost } | { kind: 'create' } | null;
 
 export function HomeScreen() {
+  const { userId } = useAuth();
+  const commentDelta = useLocalCommentDelta(userId);
   const { width } = useWindowDimensions();
   const insets = useSafeAreaInsets();
   const feedWidth = Math.min(width, 520);
@@ -48,7 +52,7 @@ export function HomeScreen() {
         initialNumToRender={3} windowSize={5}
         renderItem={({ item }) => {
           const state = states[item.id] ?? initialState;
-          return <PostCard post={item} width={feedWidth - 16} liked={state.liked} saved={state.saved} commentCount={state.commentDelta}
+          return <PostCard post={item} width={feedWidth - 16} liked={state.liked} saved={state.saved} commentCount={commentDelta(item.id)}
             onLike={() => updatePost(item.id, current => ({ ...current, liked: !current.liked }))}
             onSave={() => updatePost(item.id, current => ({ ...current, saved: !current.saved }))}
             onComment={() => setCommentPost(item)} onMenu={() => open({ kind: 'options', post: item })}
@@ -57,7 +61,7 @@ export function HomeScreen() {
         ListEmptyComponent={<View style={styles.empty}><Text style={styles.sheetHeading}>You’re all caught up</Text><Pressable accessibilityRole="button" onPress={() => setPosts(demoPosts)} style={styles.primary}><Text style={styles.primaryText}>Restore preview posts</Text></Pressable></View>}
       />
     </View>
-    {commentPost && <CommentsSheet key={commentPost.id} post={commentPost} onClose={() => setCommentPost(null)} onCountChange={delta => updatePost(commentPost.id, current => ({ ...current, commentDelta: delta }))} />}
+    {commentPost && <CommentsSheet key={commentPost.id} post={commentPost} onClose={() => setCommentPost(null)} />}
     <FeedSheet visible={sheet !== null} title={sheet?.kind === 'create' ? 'New moment' : sheet?.kind === 'profile' ? selectedPost?.username ?? 'Profile' : sheet?.kind === 'video' ? 'Amalfi Coast' : 'Post options'} onClose={() => setSheet(null)}>
       {sheet?.kind === 'options' && selectedPost && <>
         <Pressable accessibilityRole="button" onPress={() => { updatePost(selectedPost.id, current => ({ ...current, saved: !current.saved })); setSheet(null); }} style={styles.option}><Ionicons name="bookmark-outline" size={22} /><Text style={styles.body}>{selectedState.saved ? 'Remove from saved' : 'Save post'}</Text></Pressable>

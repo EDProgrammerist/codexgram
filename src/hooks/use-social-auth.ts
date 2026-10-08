@@ -1,4 +1,4 @@
-import { isClerkAPIResponseError, useAuth, useSSO } from "@clerk/expo";
+import { isClerkAPIResponseError, useAuth, useClerk, useSSO } from "@clerk/expo";
 import { useHostedAuth } from "@clerk/expo/hosted-auth";
 import * as AuthSession from "expo-auth-session";
 import * as WebBrowser from "expo-web-browser";
@@ -9,6 +9,7 @@ export type AuthProvider = "Google" | "Apple";
 
 export function useSocialAuth() {
   const { isLoaded } = useAuth();
+  const clerk = useClerk();
   const { startSSOFlow } = useSSO();
   const { startHostedAuth } = useHostedAuth();
   const locked = useRef(false);
@@ -30,7 +31,11 @@ export function useSocialAuth() {
     try {
       const redirectUrl = AuthSession.makeRedirectUri({ scheme: "codexgram", path: "sso-callback" });
       if (provider === "completion") {
-        await startHostedAuth({ redirectUrl });
+        if (Platform.OS === "web") {
+          await clerk.redirectToSignIn({ signInForceRedirectUrl: "/", signUpForceRedirectUrl: "/" });
+        } else {
+          await startHostedAuth({ redirectUrl });
+        }
         return;
       }
       setNeedsCompletion(false);
@@ -40,8 +45,8 @@ export function useSocialAuth() {
       });
       if (result.createdSessionId && result.setActive) {
         await result.setActive({ session: result.createdSessionId });
-      } else if (result.authSessionResult?.type === "success") {
-        setNeedsCompletion(Platform.OS !== "web");
+      } else if (result.authSessionResult?.type === "success" || (!result.authSessionResult && (result.signIn?.status === "needs_second_factor" || result.signUp?.status === "missing_requirements"))) {
+        setNeedsCompletion(true);
         setError("Your account needs an additional verification step before sign-in can finish.");
       } else if (!result.authSessionResult) {
         setError("Sign-in is still loading. Please try again in a moment.");

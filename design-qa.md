@@ -24,7 +24,7 @@ Focused logo/type/button/legal comparison: `design/qa/detail-final.png`.
 - Spacing: 393-point composition, 24-point button margins, 60-point buttons, 12-point button gap. Responsive natural flow scrolls on short displays. Safe-area bottom padding protects native controls.
 - Colors: near-white canvas, near-black type and Apple button, muted blue-gray supporting text, blue legal links. Photo softened after comparison.
 - Images: locally bundled recreated photo and camera, official Google PNG and FontAwesome Apple mark. The photo/mark are similar but are not the exact original source assets. No rasterized UI, phone chrome or text is used.
-- Copy: all welcome-screen copy matches the design. Buttons show truthful unavailable notices; published legal documents and Clerk OAuth are not connected in this UI-only implementation.
+- Copy: all welcome-screen copy matches the design. Google and Apple buttons invoke Clerk SSO, activate returned sessions, and show recoverable failures. Incomplete authentication offers Finish sign-in securely: Clerk browser sign-in on web and hosted auth on native. Published legal documents are not connected; their links explain this.
 
 ## Remaining findings
 
@@ -37,12 +37,12 @@ User supplied `C:/Users/ED/Desktop/IMG_2897.png` (1242 x 2208). Its buttons lack
 
 ## Verification
 
-- Google and Apple: notices open, show the appropriate provider and dismiss.
+- Google and Apple: controlled browser checks intercept Clerk signIn.create, assert oauth_google/oauth_apple and the /sso-callback redirect, then verify failure messaging and button recovery. This does not verify live provider login or production provider configuration. Hook checks separately cover completed session activation, incomplete web/native completion dispatch, and cancellation.
 - Terms and Privacy: notices open and dismiss; no fabricated legal terms or successful login.
 - 320 x 568, 393 x 700, 768 x 1024: Apple button and policy link reachable; no document horizontal overflow.
 - Browser page errors and console errors: none.
 - `npx expo lint`, `npx tsc --noEmit`, `npx expo install --check`, Android export.
-- Repeatable capture/interaction check: start Metro on 8082, then `npm run check:auth`. Optional `AUTH_PREVIEW_URL`, `PLAYWRIGHT_CHANNEL`, `CAPTURE_NAME` environment variables.
+- Repeatable capture/interaction check: start Metro on 8082, then `npm run check:auth`. Install the bundled browser with `npx playwright install chromium`. Optional `AUTH_PREVIEW_URL` and `CAPTURE_NAME` environment variables; capture and verification scripts use bundled Chromium.
 
 ## Implementation checklist
 
@@ -196,3 +196,18 @@ Validation: ten comment interaction checks passed, zero browser page errors. Lin
 Remaining differences: recreated imagery/avatars, emoji and font rendering, minor icon shapes, and no paper-plane action in the background post. The app-owned sheet layout closely matches the source; this is not a pixel-identical reproduction.
 
 Final result: blocked for exact-image acceptance due to differing source artwork; implementation and responsive interaction checks complete.
+
+
+## Review corrections (October 8, 2026)
+
+All eight review findings were verified against current code and corrected. No finding was skipped as stale.
+
+- Authentication capture now checks the real Clerk SSO action at a controlled network boundary; provider success is not claimed. Incomplete web authentication exposes a Clerk sign-in redirect; native completion retains hosted auth.
+- All capture/verification launches now use Playwright bundled Chromium. Setup: `npx playwright install chromium`.
+- Home comments and profile-editor verification use current accessible names. Both scripts were rerun successfully before retaining their passed results.
+- Local comments are scoped by authenticated user and post, with a separate signed-out preview scope. Home and comments preview derive their counts from retained records, so refresh/remount cannot reset only the displayed delta.
+- Explore and Profile use the same user-scoped saved-ID store; Profile Saved includes Explore photos and removals propagate back.
+
+Validation: `npm run lint`, `npm run typecheck`, `node scripts/verify-review-state.cjs`, `node scripts/capture-auth.cjs`, and the home, profile, explore, comments and chat verification scripts passed. Browser checks used bundled Chromium and reported zero page errors. The Explore check saves a post, finds and removes it in Profile Saved, then verifies the removal in Explore. Hook regression checks cover account isolation, deletion isolation, retained deltas, shared saves, web/native completion, session activation and cancellation. Real provider login and native device behavior were not exercised by these review checks.
+
+CodeRabbit CLI review was not run: `coderabbit` is not installed in this environment.

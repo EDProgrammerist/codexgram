@@ -1,3 +1,4 @@
+import { useSessionSaved } from '@/hooks/use-session-saved';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { Image } from 'expo-image';
@@ -22,7 +23,7 @@ export function ExploreScreen() {
   const [mode, setMode] = useState<Mode>('All');
   const [topic, setTopic] = useState<string>('For You');
   const [following, setFollowing] = useState<string[]>([]);
-  const [saved, setSaved] = useState<string[]>([]);
+  const [saved, setSaved] = useSessionSaved();
   const [hidden, setHidden] = useState<string[]>([]);
   const [sheet, setSheet] = useState<Sheet>(null);
   const [unread, setUnread] = useState(3);

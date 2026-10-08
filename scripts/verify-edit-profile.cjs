@@ -1,7 +1,7 @@
 const {chromium,expect}=require('@playwright/test');
 const fs=require('node:fs');
 (async()=>{
- const b=await chromium.launch({channel:'msedge'});const p=await b.newPage({viewport:{width:393,height:837}});const errors=[];p.on('pageerror',e=>errors.push(e.message));
+ const b=await chromium.launch({});const p=await b.newPage({viewport:{width:393,height:837}});const errors=[];p.on('pageerror',e=>errors.push(e.message));
  await p.goto('http://localhost:8082/edit-profile-preview?example=reference',{waitUntil:'networkidle'});
  const field=name=>p.getByRole('textbox',{name,exact:true});const button=name=>p.getByRole('button',{name,exact:true});
  await expect(field('Username')).toHaveValue('alex.rivera');

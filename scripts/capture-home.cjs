@@ -1,7 +1,7 @@
 const { chromium } = require('@playwright/test');
 const fs = require('node:fs');
 (async () => {
- const browser = await chromium.launch({ channel: 'msedge', headless: true });
+ const browser = await chromium.launch({ headless: true });
  const page = await browser.newPage({viewport:{width:393,height:780},deviceScaleFactor:1});
  const errors=[];
  page.on('pageerror', e => errors.push(e.message));

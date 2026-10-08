@@ -1,7 +1,7 @@
 const { chromium, expect } = require('@playwright/test');
 const fs = require('node:fs');
 (async () => {
- const browser=await chromium.launch({channel:'msedge'});
+ const browser=await chromium.launch({});
  const page=await browser.newPage({viewport:{width:393,height:764}});
  const errors=[];page.on('pageerror',e=>errors.push(e.message));
  await page.goto('http://localhost:8082/preview/profile',{waitUntil:'networkidle'});
@@ -20,8 +20,8 @@ const fs = require('node:fs');
  await page.getByRole('tab',{name:'Saved grid'}).click();
  await expect(page.getByRole('button',{name:/^Open /})).toHaveCount(3);
  await button('Edit Profile').click();
- await page.getByLabel('Profile name',{exact:true}).fill('Sarah Updated');
- await button('Save changes').click();await page.waitForTimeout(400);
+ await page.getByLabel('Display Name',{exact:true}).fill('Sarah Updated');
+ await button('Save Changes').click();await page.waitForTimeout(400);
  await expect(page.getByText('Sarah Updated',{exact:true})).toBeVisible();
  await button('Notifications').click();await button('Mark all as read').click();
  await expect(page.getByRole('alert')).toContainText('All notifications');await close();
