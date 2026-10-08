@@ -1,0 +1,18 @@
+{
+  "passed": true,
+  "checks": [
+    "messages navigation",
+    "empty send disabled",
+    "photo preview",
+    "audio availability",
+    "call availability",
+    "location preview",
+    "emoji insertion",
+    "local text send/autoscroll",
+    "attachment add/remove/send",
+    "session navigation persistence",
+    "responsive composer",
+    "signed-out protection"
+  ],
+  "errors": []
+}

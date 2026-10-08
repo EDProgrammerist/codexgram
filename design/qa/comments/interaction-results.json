@@ -1,0 +1,16 @@
+{
+  "passed": true,
+  "checks": [
+    "feed integration",
+    "empty submit disabled",
+    "like/unlike",
+    "reply/cancel",
+    "post reply/autoscroll",
+    "delete/cancel own comment",
+    "emoji",
+    "feed count update",
+    "reopen persistence",
+    "responsive composer"
+  ],
+  "errors": []
+}

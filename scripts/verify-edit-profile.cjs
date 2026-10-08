@@ -1,0 +1,30 @@
+const {chromium,expect}=require('@playwright/test');
+const fs=require('node:fs');
+(async()=>{
+ const b=await chromium.launch({});const p=await b.newPage({viewport:{width:393,height:837}});const errors=[];p.on('pageerror',e=>errors.push(e.message));
+ await p.goto('http://localhost:8082/edit-profile-preview?example=reference',{waitUntil:'networkidle'});
+ const field=name=>p.getByRole('textbox',{name,exact:true});const button=name=>p.getByRole('button',{name,exact:true});
+ await expect(field('Username')).toHaveValue('alex.rivera');
+ await expect(p.getByLabel('Bio character count')).toHaveText(`${Array.from(await field('Bio').inputValue()).length}/150`);
+ await field('Username').fill('!');await button('Save Changes').click();await expect(p.getByRole('alert')).toContainText('Username must');
+ await field('Username').fill('alex.rivera');await field('Website').fill('javascript:alert(1)');await button('Save profile').click();await expect(p.getByRole('alert')).toContainText('website address');
+ await field('Website').fill('https://alexrivera.co');await field('Display Name').fill('');await button('Save Changes').click();await expect(p.getByRole('alert')).toContainText('display name');
+ await field('Display Name').fill('Alex Updated');await field('Bio').fill('x'.repeat(170));await expect(field('Bio')).toHaveValue('x'.repeat(150));await expect(p.getByLabel('Bio character count')).toHaveText('150/150');
+ const pick=async file=>{const chooser=p.waitForEvent('filechooser');await button('Change Photo').click();await(await chooser).setFiles(file);};
+ await pick({name:'test.gif',mimeType:'image/gif',buffer:Buffer.from('R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==','base64')});await expect(p.getByRole('alert')).toContainText('JPG or PNG');
+ const png=fs.readFileSync('assets/images/google-logo.png');
+ await pick({name:'large.png',mimeType:'image/png',buffer:Buffer.concat([png,Buffer.alloc(5*1024*1024)])});await expect(p.getByRole('alert')).toContainText('smaller than 5MB');
+ await pick('assets/images/google-logo.png');await expect(p.getByRole('alert')).toHaveCount(0);
+ await button('Save Changes').click();await expect(p.getByText('Changes saved for this session.')).toBeVisible();
+ await expect(button('Sign Out')).toHaveCount(0);
+ await p.goto('http://localhost:8082/preview/profile',{waitUntil:'networkidle'});await button('Edit Profile').click();await expect(p).toHaveURL(/edit-profile-preview$/);
+ await field('Display Name').fill('Sarah Edited');await field('Website').fill('https://sarah.example.com');await button('Save profile').click();
+ await expect(p).toHaveURL(/preview\/profile$/);await expect(p.getByText('Sarah Edited',{exact:true})).toBeVisible();
+ await expect(p.getByText('https://sarah.example.com',{exact:true})).toBeVisible();
+ await button('Edit Profile').click();await field('Display Name').fill('Discard this');await button('Back to profile').click();await expect(p.getByText('Sarah Edited',{exact:true})).toBeVisible();
+ await p.goto('http://localhost:8082/edit-profile-preview?example=reference',{waitUntil:'networkidle'});
+ for(const [width,height] of [[320,568],[414,896]]){await p.setViewportSize({width,height});await field('Location').scrollIntoViewIfNeeded();await field('Location').focus();await button('Save Changes').scrollIntoViewIfNeeded();await expect(button('Save Changes')).toBeInViewport();if(await p.evaluate(()=>document.documentElement.scrollWidth>innerWidth))throw Error('Horizontal overflow');await p.screenshot({path:`design/qa/edit-profile/size-${width}x${height}.png`});}
+ await p.goto('http://localhost:8082/edit-profile',{waitUntil:'networkidle'});await expect(p).toHaveURL('http://localhost:8082/');
+ if(errors.length)throw Error(errors.join('\n'));
+ const result={passed:true,checks:['field validation','bio counter and limit','reject GIF','reject oversized image','select PNG','both save controls','profile updates on return','discard on back','no sign out on edit screen','small-screen scrolling','signed-out guard'],errors};fs.writeFileSync('design/qa/edit-profile/interaction-results.json',JSON.stringify(result,null,2));console.log(result);await b.close();
+})().catch(e=>{console.error(e);process.exit(1)});

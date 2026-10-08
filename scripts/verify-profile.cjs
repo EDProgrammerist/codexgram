@@ -1,0 +1,44 @@
+const { chromium, expect } = require('@playwright/test');
+const fs = require('node:fs');
+(async () => {
+ const browser=await chromium.launch({});
+ const page=await browser.newPage({viewport:{width:393,height:764}});
+ const errors=[];page.on('pageerror',e=>errors.push(e.message));
+ await page.goto('http://localhost:8082/preview/profile',{waitUntil:'networkidle'});
+ const button=name=>page.getByRole('button',{name,exact:true});
+ const close=async()=>{await button('Close').click();await page.waitForTimeout(400);};
+ await expect(page.getByRole('button',{name:/^Open /})).toHaveCount(9);
+ await page.getByRole('tab',{name:'Reels grid'}).click();
+ await expect(page.getByRole('button',{name:/^Open /})).toHaveCount(1);
+ await page.getByRole('tab',{name:'Saved grid'}).click();
+ await expect(page.getByRole('button',{name:/^Open /})).toHaveCount(2);
+ await page.getByRole('tab',{name:'Tagged grid'}).click();
+ await expect(page.getByRole('button',{name:/^Open /})).toHaveCount(2);
+ await page.getByRole('tab',{name:'Posts grid'}).click();
+ await button('Open Golden hour at Lake Como').click();
+ await button('Save moment').click();await expect(button('Unsave moment')).toBeVisible();await close();
+ await page.getByRole('tab',{name:'Saved grid'}).click();
+ await expect(page.getByRole('button',{name:/^Open /})).toHaveCount(3);
+ await button('Edit Profile').click();
+ await page.getByLabel('Display Name',{exact:true}).fill('Sarah Updated');
+ await button('Save Changes').click();await page.waitForTimeout(400);
+ await expect(page.getByText('Sarah Updated',{exact:true})).toBeVisible();
+ await button('Notifications').click();await button('Mark all as read').click();
+ await expect(page.getByRole('alert')).toContainText('All notifications');await close();
+ await button('Discover people').click();await button('Follow alexwong').click();
+ await expect(button('Unfollow alexwong')).toBeVisible();await close();
+ await expect(button('613 Following')).toBeVisible();
+ await button('Profile settings').click();await expect(page.getByText(/reference profile with demo posts/)).toBeVisible();await close();
+ await button('Add profile story').click();await expect(page.getByText(/Preview story/)).toBeVisible();await close();
+ await page.reload({waitUntil:'networkidle'});
+ for(const [width,height] of [[320,568],[414,896],[768,1024]]){
+  await page.setViewportSize({width,height});await page.waitForTimeout(400);
+  if(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth))throw Error(`Overflow at ${width}`);
+  await expect(page.getByRole('tab',{name:/Profile$/})).toBeInViewport();
+  await page.screenshot({path:`design/qa/profile/size-${width}x${height}.png`});
+ }
+ await page.goto('http://localhost:8082/profile',{waitUntil:'networkidle'});await expect(page).toHaveURL('http://localhost:8082/');
+ if(errors.length)throw Error(errors.join('\n'));
+ const result={passed:true,checks:['nine photos','four grid filters','save moment','edit profile','mark notifications read','follow preview person','settings','story preview','responsive layouts','signed-out protection'],errors};
+ fs.writeFileSync('design/qa/profile/interaction-results.json',JSON.stringify(result,null,2));console.log(result);await browser.close();
+})().catch(e=>{console.error(e);process.exit(1)});

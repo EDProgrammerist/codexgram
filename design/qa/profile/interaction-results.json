@@ -1,0 +1,16 @@
+{
+  "passed": true,
+  "checks": [
+    "nine photos",
+    "four grid filters",
+    "save moment",
+    "edit profile",
+    "mark notifications read",
+    "follow preview person",
+    "settings",
+    "story preview",
+    "responsive layouts",
+    "signed-out protection"
+  ],
+  "errors": []
+}

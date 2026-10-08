@@ -1,0 +1,36 @@
+{
+  "passed": true,
+  "checks": [
+    "like toggle",
+    "save toggle",
+    "photo carousel",
+    "comment submission",
+    "video availability notice",
+    "preview composer",
+    "four tab routes",
+    "signed-out route protection"
+  ],
+  "sizes": [
+    {
+      "width": 320,
+      "height": 568,
+      "overflow": false
+    },
+    {
+      "width": 414,
+      "height": 736,
+      "overflow": false
+    },
+    {
+      "width": 393,
+      "height": 852,
+      "overflow": false
+    },
+    {
+      "width": 768,
+      "height": 1024,
+      "overflow": false
+    }
+  ],
+  "errors": []
+}
